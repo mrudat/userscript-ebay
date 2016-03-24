@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name          eBay - Display Totals with Shipping
-// @namespace     http://www.facebook.com/Tophness
+// @namespace     http://www.toraboka.com/~mrudat
 // @description   Computes and displays the total price with shipping added.
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.2.20140928141320
+// @version       0.0.2
 // ==/UserScript==
 
 /* jshint esnext: true */
