@@ -18,8 +18,8 @@ function process() {
     var tld = location.host.split('.').reverse()[0];
     switch (tld) {
         case 'uk':
-            currency = '£';
-            price = /£([\d\,]*.\d\d)/;
+            currency = 'Â£';
+            price = /Â£([\d\,]*.\d\d)/;
             break;
     }
 
