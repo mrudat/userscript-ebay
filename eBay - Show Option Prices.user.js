@@ -5,7 +5,7 @@
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.1
+// @version       0.0.2
 // ==/UserScript==
 
 /* jshint esnext: true */
@@ -33,14 +33,11 @@ function process() {
         }
         
         var variationsPanel = chosenVariation.parentNode;
-        console.log(variationsPanel);
 
         var request = new XMLHttpRequest();
         request.open("GET", location.href);
-        console.log(location.href)
         request.onloadend = function(){
             var rdata = request.responseText;
-            console.log("foo");
 
             var varipoint = rdata.indexOf('"itmVarModel":{');
             if (varipoint == -1){
@@ -49,7 +46,6 @@ function process() {
             var varidata = rdata.substring(varipoint);
             varidata = '{' + varidata.substring(0, varidata.indexOf('"unavailableVariationIds"')-1) + '}}';
             var itmVarModel = JSON.parse(varidata).itmVarModel;
-            console.log(itmVarModel);
 
             var menuModels = itmVarModel.menuModels;
             var menuItemMap = itmVarModel.menuItemMap;
@@ -70,9 +66,7 @@ function process() {
                 finaldata += "<th>" + menuModel.displayName + "</th>";
             });
             finaldata += "<th>Price</th></tr></thead><tbody>";
-            console.log(finaldata);
             itemVariations.forEach(itemVariation => {
-                console.log(itemVariation);
                 finaldata += "<tr>";
                 var traitValuesMap = itemVariation.traitValuesMap;
                 menuModels.forEach(menuModel => {
@@ -82,15 +76,12 @@ function process() {
                 var priceCurrency = convertedPrice.substring(0, convertedPrice.indexOf(currency) + 1);
                 convertedPrice = convertedPrice.substring(convertedPrice.indexOf(currency) + 1);
                 finaldata += "<td>" + priceCurrency + convertedPrice + "</td></tr>";
-                console.log(finaldata);
             });
             finaldata += "</tbody></table>";
-            console.log(finaldata);
             
             var el = document.createElement('div');
             el.class = "vi-msku-cntr";
             el.innerHTML = finaldata;
-            console.log(el);
             variationsPanel.appendChild(el);
         };
 
