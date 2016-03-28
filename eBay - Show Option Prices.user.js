@@ -5,7 +5,7 @@
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.3
+// @version       0.0.4
 // ==/UserScript==
 
 /* jshint esnext: true */
@@ -42,7 +42,7 @@ function process() {
             shippingCostText = shippingCost.textContent;
         }
         var shippingPrice = -1;
-        if (/Free/.test (shippingCostText) || (/Digital delivery/.test(shippingCostText))) {
+        if (/Free/i.test (shippingCostText) || (/Digital delivery/.test(shippingCostText))) {
             shippingPrice = 0;
         } else if (/Not specified/.test(shippingCostText)) {
             shippingPrice = -1;
@@ -117,11 +117,11 @@ function process() {
             
             var lvprices = rowElement.querySelector('ul.lvprices');
 
-            var shipping = lvprices.querySelector('span.fee');
+            var shipping = lvprices.querySelector('span.fee') || lvprices.querySelector("span.bfsp");
 
             if (shipping !== null) {
                 var tc = shipping.textContent;
-                if (/Free/.test (tc) || (/Digital delivery/.test(tc))) {
+                if (/Free/i.test (tc) || (/Digital delivery/.test(tc))) {
                     shippingPrice = 0;
                 } else if (/Not specified/.test(tc)) {
                     shippingPrice = -1;
@@ -194,9 +194,10 @@ function process() {
                     menuModels.forEach(menuModel => {
                         finaldata += "<td>" + menuItemMap[traitValuesMap[menuModel.name]].displayName + "</td>";
                     });
-                    var buyItNowPrice = itemVariation.convertedPrice || itemVariation.price;
-                    var priceCurrency = buyItNowPrice.substring(0, buyItNowPrice.indexOf(currency) + 1);
-                    buyItNowPrice = buyItNowPrice.substring(buyItNowPrice.indexOf(currency) + 1);
+                    var convertedPrice = itemVariation.convertedPrice || itemVariation.price;
+                    var priceCurrency = convertedPrice.substring(0, convertedPrice.indexOf(currency) + 1);
+                    convertedPrice = convertedPrice.substring(convertedPrice.indexOf(currency) + 1);
+                    var buyItNowPrice = convertedPrice;
                     finaldata += "<td>" + priceCurrency;
                     if (shippingPrice == -1) {
                         finaldata += buyItNowPrice + " + ?";
