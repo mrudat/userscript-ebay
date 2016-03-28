@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name          eBay - Show Option Prices
 // @namespace     http://www.toraboka.com/~mrudat
-// @description	  Inserts prices for all the extra options that may be included in the eBay page.
+// @description   Inserts prices for all the extra options that may be included in the eBay page.
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.2
+// @version       0.0.3
 // ==/UserScript==
 
 /* jshint esnext: true */
@@ -32,6 +32,24 @@ function process() {
             return;
         }
         
+        var shippingCost = document.querySelector('span#fshippingCost');
+        var shippingCostConverted = document.querySelector('span#convetedPriceId');
+
+        var shippingCostText = null;
+        if (shippingCostConverted !== null) {
+            shippingCostText = shippingCostConverted.textContent;
+        } else if (shippingCost !== null) {
+            shippingCostText = shippingCost.textContent;
+        }
+        var shippingPrice = -1;
+        if (/Free/.test (shippingCostText) || (/Digital delivery/.test(shippingCostText))) {
+            shippingPrice = 0;
+        } else if (/Not specified/.test(shippingCostText)) {
+            shippingPrice = -1;
+        } else if (price.test(shippingCostText)){
+            shippingPrice = shippingCostText.match(price)[1].replace(',','');
+        }
+
         var variationsPanel = chosenVariation.parentNode;
 
         var request = new XMLHttpRequest();
@@ -54,9 +72,9 @@ function process() {
 
             itemVariations = itemVariations
                 .map(itemVariation => {
-                var convertedPrice = itemVariation.convertedPrice || itemVariation.price;
-                convertedPrice = convertedPrice.match(price)[1].replace(',','');
-                return [convertedPrice, itemVariation];
+                var buyItNowPrice = itemVariation.convertedPrice || itemVariation.price;
+                buyItNowPrice = buyItNowPrice.match(price)[1].replace(',','');
+                return [buyItNowPrice, itemVariation];
             })
                 .sort((a,b) => a[0] - b[0])
                 .map(i => i[1]);
@@ -72,10 +90,17 @@ function process() {
                 menuModels.forEach(menuModel => {
                     finaldata += "<td>" + menuItemMap[traitValuesMap[menuModel.name]].displayName + "</td>";
                 });
-                var convertedPrice = itemVariation.convertedPrice || itemVariation.price;
-                var priceCurrency = convertedPrice.substring(0, convertedPrice.indexOf(currency) + 1);
-                convertedPrice = convertedPrice.substring(convertedPrice.indexOf(currency) + 1);
-                finaldata += "<td>" + priceCurrency + convertedPrice + "</td></tr>";
+                var buyItNowPrice = itemVariation.convertedPrice || itemVariation.price;
+                var priceCurrency = buyItNowPrice.substring(0, buyItNowPrice.indexOf(currency) + 1);
+                buyItNowPrice = buyItNowPrice.substring(buyItNowPrice.indexOf(currency) + 1);
+                finaldata += "<td>" + priceCurrency;
+                if (shippingPrice == -1) {
+                    finaldata += buyItNowPrice + " + ?";
+                } else {
+                    buyItNowPrice = (parseFloat(buyItNowPrice) + parseFloat(shippingPrice)).toFixed(2);
+                    finaldata += buyItNowPrice;
+                }
+                finaldata += "</td></tr>";
             });
             finaldata += "</tbody></table>";
             
@@ -88,7 +113,22 @@ function process() {
         request.send();
     } else {
         Array.prototype.forEach.call(document.querySelectorAll('li[listingid]'),rowElement => {
+            var shippingPrice = -1;
+            
             var lvprices = rowElement.querySelector('ul.lvprices');
+
+            var shipping = lvprices.querySelector('span.fee');
+
+            if (shipping !== null) {
+                var tc = shipping.textContent;
+                if (/Free/.test (tc) || (/Digital delivery/.test(tc))) {
+                    shippingPrice = 0;
+                } else if (/Not specified/.test(tc)) {
+                    shippingPrice = -1;
+                } else if (price.test(tc)){
+                    shippingPrice = tc.match(price)[1].replace(',','');
+                }
+            }
 
             var buyItNow = lvprices.querySelector('li.lvprice span.bold') || lvprices.querySelector('li.lvprice');
 
@@ -128,6 +168,7 @@ function process() {
                 var itemVariations = Object.keys(itmVarModel.itemVariationsMap).map(k => itmVarModel.itemVariationsMap[k]);
 
                 itemVariations = itemVariations
+                    .filter(i => i.quantityAvailable >= 1)
                     .map(itemVariation => {
                     var convertedPrice = itemVariation.convertedPrice || itemVariation.price;
                     convertedPrice = convertedPrice.match(price)[1].replace(',','');
@@ -153,10 +194,17 @@ function process() {
                     menuModels.forEach(menuModel => {
                         finaldata += "<td>" + menuItemMap[traitValuesMap[menuModel.name]].displayName + "</td>";
                     });
-                    var convertedPrice = itemVariation.convertedPrice || itemVariation.price;
-                    var priceCurrency = convertedPrice.substring(0, convertedPrice.indexOf(currency) + 1);
-                    convertedPrice = convertedPrice.substring(convertedPrice.indexOf(currency) + 1);
-                    finaldata += "<td>" + priceCurrency + convertedPrice + "</td></tr>";
+                    var buyItNowPrice = itemVariation.convertedPrice || itemVariation.price;
+                    var priceCurrency = buyItNowPrice.substring(0, buyItNowPrice.indexOf(currency) + 1);
+                    buyItNowPrice = buyItNowPrice.substring(buyItNowPrice.indexOf(currency) + 1);
+                    finaldata += "<td>" + priceCurrency;
+                    if (shippingPrice == -1) {
+                        finaldata += buyItNowPrice + " + ?";
+                    } else {
+                        buyItNowPrice = (parseFloat(buyItNowPrice) + parseFloat(shippingPrice)).toFixed(2);
+                        finaldata += buyItNowPrice;
+                    }
+                    finaldata += "</td></tr>";
                 });
                 if (truncated) {
                     finaldata += '<tr><td colspan="' + (menuModels.length + 1) + '">...</td></tr>';

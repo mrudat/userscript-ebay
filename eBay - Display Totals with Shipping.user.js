@@ -5,7 +5,7 @@
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.3
+// @version       0.0.4
 // ==/UserScript==
 
 /* jshint esnext: true */
@@ -79,7 +79,6 @@ function process() {
                 priceSummaryConverted.parentNode.parentNode.removeChild(priceSummaryConverted.parentNode);
             }
             priceSummary.innerHTML = priceSummaryCurrency + buyItNowTotal;
-            shippingCost.innerHTML = priceSummaryCurrency + buyItNowPrice + ' + <span class="sh-svc sh-nwr">' + priceSummaryCurrency + shippingPrice + '</span>';
         }
     } else {
         Array.prototype.forEach.call(document.querySelectorAll('li[listingid]'),rowElement => {
@@ -117,7 +116,7 @@ function process() {
                     buyItNowTotal = (parseFloat(buyItNowPrice) + parseFloat(shippingPrice)).toFixed(2);
                 }
                 buyItNow.innerHTML = buyItNow.innerHTML.substring(0, buyItNow.innerHTML.indexOf('</b>') + 4) + buyItNowTotal;
-                shipping.innerHTML = '<b>' + currency + buyItNowPrice + '</b> + ' + shipping.innerHTML.substring(shipping.innerHTML.indexOf(currency));
+                shipping.innerHTML = shipping.innerHTML.replace('+','including ');
             }
         });
     }
