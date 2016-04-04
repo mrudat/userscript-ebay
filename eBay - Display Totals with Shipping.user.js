@@ -5,7 +5,7 @@
 // @include       http://*.ebay.tld/*sch/*
 // @include       http://*.ebay.tld/*i.html?*
 // @include       http://*.ebay.tld/itm/*
-// @version       0.0.4
+// @version       0.0.5
 // ==/UserScript==
 
 /* jshint esnext: true */
@@ -105,8 +105,10 @@ function process() {
 
             var buyItNow = lvprices.querySelector('li.lvprice span.bold') || lvprices.querySelector('li.lvprice');
 
-            if (buyItNow !== null) {
+			var priceSummaryCurrency = "";
+			if (buyItNow !== null) {
                 var tc = buyItNow.textContent;
+				priceSummaryCurrency = tc.substring(0, tc.indexOf(currency) + 1);
                 buyItNowPrice = tc.match(price)[1].replace(',','');
             }
 
@@ -115,7 +117,7 @@ function process() {
                 if (!isNaN(buyItNowPrice) && !isNaN(shippingPrice)){
                     buyItNowTotal = (parseFloat(buyItNowPrice) + parseFloat(shippingPrice)).toFixed(2);
                 }
-                buyItNow.innerHTML = buyItNow.innerHTML.substring(0, buyItNow.innerHTML.indexOf('</b>') + 4) + buyItNowTotal;
+                buyItNow.innerHTML = buyItNow.innerHTML.substring(0, buyItNow.innerHTML.indexOf('</b>') + 4) + priceSummaryCurrency + buyItNowTotal;
                 shipping.innerHTML = shipping.innerHTML.replace('+','including ');
             }
         });
